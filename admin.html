@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h2>Управление балансом</h2>
+    <input type="number" id="newBalance" placeholder="Введите новый баланс">
+    <button onclick="updateBalance()">Сохранить баланс</button>
+
+    <script>
+        function updateBalance() {
+            const val = document.getElementById('newBalance').value;
+            if (val !== '') {
+                // Записываем баланс в хранилище
+                localStorage.setItem('game_balance', val);
+                alert('Баланс обновлен: ' + val);
+            }
+        }
+    </script>
+</body>
+</html>
