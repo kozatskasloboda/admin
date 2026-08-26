@@ -2,31 +2,58 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Админ Панель</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <title>Админка Баланса</title>
 </head>
 <body>
-    <h2>Управление терминалом #1</h2>
-    <input type="number" id="balanceInput" placeholder="Введите новый баланс">
-    <button onclick="setBalance()">Установить баланс</button>
+    <h2>Изменить баланс терминала</h2>
+    <input type="number" id="newBal" placeholder="Новый баланс">
+    <button onclick="saveToGithub()">Сохранить на GitHub</button>
 
     <script>
-      const firebaseConfig = {
-        databaseURL: "https://ВАШ_ПРОЕКТ.firebaseio.com"
-      };
-      firebase.initializeApp(firebaseConfig);
-      const db = firebase.database();
+        const GITHUB_TOKEN = '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'; // Вставьте токен из Шага 1
+        const OWNER = 'kozatskasloboda';         // Ваш ник на GitHub
+        const REPO = 'game';        // Имя репозитория
+        const FILE_PATH = 'balance.json';           // Путь к файлу
 
-      function setBalance() {
-        const val = parseFloat(document.getElementById('balanceInput').value);
-        if (!isNaN(val)) {
-          // Записываем баланс в облако
-          db.ref('terminal_1/balance').set(val).then(() => {
-            alert('Баланс успешно изменен на ' + val);
-          });
+        async function saveToGithub() {
+            const amount = parseFloat(document.getElementById('newBal').value);
+            if (isNaN(amount)) return alert('Введите число!');
+
+            try {
+                // 1. Получаем SHA существующего файла (требование GitHub API для обновления)
+                const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`;
+                const getRes = await fetch(getUrl, {
+                    headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
+                });
+                const fileData = await getRes.json();
+
+                // 2. Кодируем новые данные в base64
+                const contentBase64 = btoa(JSON.stringify({ balance: amount }));
+
+                // 3. Отправляем обновление в репозиторий
+                const putRes = await fetch(getUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${GITHUB_TOKEN}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: 'Update balance from Admin',
+                        content: contentBase64,
+                        sha: fileData.sha // Нужен SHA старого файла
+                    })
+                });
+
+                if (putRes.ok) {
+                    alert('Баланс успешно обновлен в GitHub!');
+                } else {
+                    alert('Ошибка при сохранении');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Ошибка сети или доступа');
+            }
         }
-      }
     </script>
 </body>
 </html>
